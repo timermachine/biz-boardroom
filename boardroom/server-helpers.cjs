@@ -1,20 +1,56 @@
 const fs = require('fs');
 const path = require('path');
 
-const MEMBERS_FILE = path.join(__dirname, 'builtin-members.json');
-const PROJECT_CONTEXT_FILE = path.join(__dirname, 'project-context.md');
-const BOARD_RULES_FILE = path.join(__dirname, 'board-rules.md');
+const BOARDROOM_DIR = __dirname;
+const PROJECT_INPUT_DATA_DIR = path.join(BOARDROOM_DIR, 'project-input-data');
+const DEFAULT_MEMBERS_FILE = path.join(BOARDROOM_DIR, 'builtin-members.json');
+const DEFAULT_PROJECT_CONTEXT_FILE = path.join(BOARDROOM_DIR, 'project-context.md');
+const DEFAULT_BOARD_RULES_FILE = path.join(BOARDROOM_DIR, 'board-rules.md');
+const DEFAULT_REVIEW_ORCHESTRATION_FILE = path.join(BOARDROOM_DIR, 'review-orchestration.md');
+const DEFAULT_REVIEW_ORCHESTRATION_JSON_FILE = path.join(BOARDROOM_DIR, 'review-orchestration.json');
+
+function getLatestMeetingPackDir() {
+  if (!fs.existsSync(PROJECT_INPUT_DATA_DIR)) return null;
+  const dateDirs = fs.readdirSync(PROJECT_INPUT_DATA_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  if (!dateDirs.length) return null;
+  const latestDateDir = dateDirs[dateDirs.length - 1];
+  const datedPath = path.join(PROJECT_INPUT_DATA_DIR, latestDateDir);
+  const packDirs = fs.readdirSync(datedPath, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  if (!packDirs.length) return null;
+  return path.join(datedPath, packDirs[packDirs.length - 1]);
+}
+
+function resolvePackFile(filename, fallbackPath) {
+  const packDir = getLatestMeetingPackDir();
+  if (!packDir) return fallbackPath;
+  const packFile = path.join(packDir, filename);
+  return fs.existsSync(packFile) ? packFile : fallbackPath;
+}
 
 function loadBuiltinMembers() {
-  return JSON.parse(fs.readFileSync(MEMBERS_FILE, 'utf8'));
+  return JSON.parse(fs.readFileSync(resolvePackFile('builtin-members.json', DEFAULT_MEMBERS_FILE), 'utf8'));
 }
 
 function loadProjectContext() {
-  return fs.readFileSync(PROJECT_CONTEXT_FILE, 'utf8').trim();
+  return fs.readFileSync(resolvePackFile('project-context.md', DEFAULT_PROJECT_CONTEXT_FILE), 'utf8').trim();
 }
 
 function loadBoardRules() {
-  return fs.readFileSync(BOARD_RULES_FILE, 'utf8').trim();
+  return fs.readFileSync(resolvePackFile('board-rules.md', DEFAULT_BOARD_RULES_FILE), 'utf8').trim();
+}
+
+function loadReviewOrchestration() {
+  return fs.readFileSync(resolvePackFile('review-orchestration.md', DEFAULT_REVIEW_ORCHESTRATION_FILE), 'utf8').trim();
+}
+
+function loadReviewOrchestrationJson() {
+  return JSON.parse(fs.readFileSync(resolvePackFile('review-orchestration.json', DEFAULT_REVIEW_ORCHESTRATION_JSON_FILE), 'utf8'));
 }
 
 function moodInstruction(level) {
@@ -38,6 +74,8 @@ function buildRespondPrompt(payload) {
   const { member, activeMembers, breakoutRooms = [], userText, currentAgenda, transcript } = payload;
   const projectContext = loadProjectContext();
   const boardRules = loadBoardRules();
+  const reviewOrchestration = loadReviewOrchestration();
+  const reviewOrchestrationJson = loadReviewOrchestrationJson();
   const memberContext = transcript
     .filter((entry) => entry.memberId === member.id)
     .slice(-3)
@@ -51,6 +89,12 @@ ${projectContext}
 
 BOARD RULES:
 ${boardRules}
+
+REVIEW ORCHESTRATION:
+${reviewOrchestration}
+
+REVIEW ORCHESTRATION JSON:
+${JSON.stringify(reviewOrchestrationJson, null, 2)}
 
 ACTIVE BOARD:
 ${activeMembers.map(renderMemberLine).join('\n')}
@@ -157,6 +201,9 @@ ${transcriptLines}`;
 
 module.exports = {
   buildRespondPrompt,
+  getLatestMeetingPackDir,
   loadBuiltinMembers,
+  loadReviewOrchestration,
+  loadReviewOrchestrationJson,
   renderMinutesMarkdown,
 };

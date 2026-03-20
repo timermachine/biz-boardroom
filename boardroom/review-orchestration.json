@@ -1,0 +1,160 @@
+{
+  "modes": {
+    "full_board": {
+      "use_for": [
+        "integrated_venture_review",
+        "funding_readiness",
+        "strategic_pivot",
+        "cross_functional_dependency",
+        "major_document_contradiction"
+      ]
+    },
+    "individual": {
+      "output_shape": [
+        "strongest_objection",
+        "missing_evidence",
+        "revision_required",
+        "kill_criterion"
+      ]
+    },
+    "pair": {
+      "purpose": "Use when the issue is defined by tension between two viewpoints."
+    },
+    "breakout": {
+      "purpose": "Use when the main room is looping, blocked, or carrying too much unresolved detail.",
+      "return_required": [
+        "narrowed_recommendation",
+        "tradeoffs",
+        "remaining_open_questions"
+      ],
+      "coordinator_trigger": "chris"
+    }
+  },
+  "pairs": [
+    {
+      "members": ["edward", "frank"],
+      "use_for": [
+        "ambition_vs_economic_realism",
+        "growth_claims_vs_exposure",
+        "strategic_direction_vs_capital_discipline"
+      ]
+    },
+    {
+      "members": ["terry", "des"],
+      "use_for": [
+        "technical_feasibility_vs_adoption_friction",
+        "security_vs_simplicity",
+        "architecture_affecting_ux"
+      ]
+    },
+    {
+      "members": ["frank", "henry"],
+      "use_for": [
+        "funding_structure",
+        "downside_protection",
+        "valuation_challenge",
+        "investor_defensibility"
+      ]
+    },
+    {
+      "members": ["edward", "terry"],
+      "use_for": [
+        "product_ambition_vs_implementation_realism",
+        "build_sequencing"
+      ]
+    },
+    {
+      "members": ["edward", "pritchard"],
+      "use_for": [
+        "strategy_articulation",
+        "market_narrative",
+        "investor_framing"
+      ]
+    },
+    {
+      "members": ["des", "psy"],
+      "use_for": [
+        "trust_habit_onboarding",
+        "user_comprehension_and_repetition"
+      ]
+    },
+    {
+      "members": ["terry", "frank"],
+      "use_for": [
+        "infrastructure_cost_vs_technical_quality",
+        "architecture_budget_tradeoff"
+      ]
+    },
+    {
+      "members": ["mat", "frank"],
+      "use_for": [
+        "model_coherence",
+        "financial_assumptions",
+        "sensitivity_analysis"
+      ]
+    }
+  ],
+  "trios": [
+    {
+      "members": ["edward", "terry", "frank"],
+      "use_for": [
+        "architecture_cost_tradeoffs",
+        "strategic_commitments_with_technical_and_financial_consequences"
+      ]
+    },
+    {
+      "members": ["edward", "frank", "henry"],
+      "use_for": [
+        "funding_narrative",
+        "valuation_challenge",
+        "investor_readiness"
+      ]
+    },
+    {
+      "members": ["terry", "des", "psy"],
+      "use_for": [
+        "product_trust",
+        "onboarding_complexity",
+        "fraud_friction_vs_usability"
+      ]
+    }
+  ],
+  "issue_routes": {
+    "unit_economics": {
+      "start": ["frank"],
+      "escalate": ["frank", "henry"],
+      "integrate": ["edward", "frank", "mat"]
+    },
+    "funding_and_equity": {
+      "start": ["frank"],
+      "escalate": ["frank", "henry"],
+      "integrate": ["edward", "frank", "henry"]
+    },
+    "product_and_ux": {
+      "start": ["des"],
+      "escalate": ["des", "psy"],
+      "integrate": ["terry", "des", "psy"]
+    },
+    "technical_architecture_and_qr_security": {
+      "start": ["terry"],
+      "escalate": ["terry", "frank"],
+      "integrate": ["edward", "terry", "frank"]
+    },
+    "go_to_market": {
+      "start": ["edward"],
+      "alternate_start": ["pritchard"],
+      "escalate": ["edward", "pritchard"],
+      "integrate": ["edward", "frank", "chris"]
+    },
+    "behavioural_adoption_and_trust": {
+      "start": ["psy"],
+      "escalate": ["des", "psy"],
+      "integrate": ["terry", "des", "psy"]
+    },
+    "deadlock_or_dependency_confusion": {
+      "start": ["chris"],
+      "escalate": ["chris", "blockers"],
+      "breakout_trigger": true
+    }
+  }
+}

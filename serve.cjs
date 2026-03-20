@@ -7,15 +7,33 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { spawn } = require('child_process');
-const { buildRespondPrompt, loadBuiltinMembers, renderMinutesMarkdown } = require('./boardroom/server-helpers.cjs');
+const {
+  buildRespondPrompt,
+  getLatestMeetingPackDir,
+  loadBuiltinMembers,
+  renderMinutesMarkdown
+} = require('./boardroom/server-helpers.cjs');
 
 const DEFAULT_PORT = Number.parseInt(process.env.PORT || '3737', 10);
-const MINUTES_DIR = path.join(__dirname, 'board-minutes');
-const minutesFiles = new Map();
+const PROJECT_INPUT_DATA_DIR = path.join(__dirname, 'boardroom', 'project-input-data');
+const EXAMPLE_INPUT_DOCS_DIR = path.join(__dirname, 'boardroom', 'example-biz-input-docs');
+const meetingFolders = new Map();
 const STATIC_ROOT = path.join(__dirname, 'boardroom');
+const SNAPSHOT_FILES = [
+  { source: path.join(STATIC_ROOT, 'project-context.md'), target: 'project-context.md' },
+  { source: path.join(STATIC_ROOT, 'board-rules.md'), target: 'board-rules.md' },
+  { source: path.join(STATIC_ROOT, 'how-to-use-boardroom.md'), target: 'how-to-use-boardroom.md' },
+  { source: path.join(STATIC_ROOT, 'review-orchestration.md'), target: 'review-orchestration.md' },
+  { source: path.join(STATIC_ROOT, 'review-orchestration.json'), target: 'review-orchestration.json' },
+  { source: path.join(STATIC_ROOT, 'builtin-members.json'), target: 'builtin-members.json' },
+];
 
-function ensureMinutesDir(callback) {
-  fs.mkdir(MINUTES_DIR, { recursive: true }, callback);
+function ensureProjectInputDataDir(callback) {
+  fs.mkdir(PROJECT_INPUT_DATA_DIR, { recursive: true }, callback);
+}
+
+function getStaticSnapshotFiles() {
+  return SNAPSHOT_FILES;
 }
 
 function slugify(value) {
@@ -32,11 +50,68 @@ function timestampForFilename(date = new Date()) {
   return `${parts.join('-')}_${time.join('-')}`;
 }
 
-function getMinutesFilePath(sessionId, summary) {
-  if (minutesFiles.has(sessionId)) return minutesFiles.get(sessionId);
-  const filePath = path.join(MINUTES_DIR, `${timestampForFilename()}_${slugify(summary)}.md`);
-  minutesFiles.set(sessionId, filePath);
-  return filePath;
+function getMeetingFolderPath(sessionId, summary) {
+  if (meetingFolders.has(sessionId)) return meetingFolders.get(sessionId);
+  const timestamp = timestampForFilename();
+  const [datePart, timePart] = timestamp.split('_');
+  const folderPath = path.join(PROJECT_INPUT_DATA_DIR, datePart, `${timePart}_${slugify(summary)}`);
+  meetingFolders.set(sessionId, folderPath);
+  return folderPath;
+}
+
+function copyFiles(fileSpecs, destinationDir, callback) {
+  let pending = fileSpecs.length;
+  if (!pending) return callback(null);
+
+  for (const file of fileSpecs) {
+    fs.copyFile(file.source, path.join(destinationDir, file.target), (error) => {
+      if (error) {
+        pending = -1;
+        return callback(error);
+      }
+      pending -= 1;
+      if (pending === 0) callback(null);
+    });
+  }
+}
+
+function collectPackSnapshotFiles(sourceDir) {
+  const entries = fs.readdirSync(sourceDir, { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile() && entry.name !== 'minutes.md')
+    .map((entry) => ({
+      source: path.join(sourceDir, entry.name),
+      target: entry.name,
+    }));
+}
+
+function seedInitialMeetingPack(callback) {
+  const existingPack = getLatestMeetingPackDir();
+  if (existingPack) return callback(null);
+
+  const timestamp = timestampForFilename();
+  const [datePart] = timestamp.split('_');
+  const seedDir = path.join(PROJECT_INPUT_DATA_DIR, datePart, '00-00-00_initial-doc-pack');
+  const staticFiles = getStaticSnapshotFiles();
+
+  fs.mkdir(seedDir, { recursive: true }, (mkdirError) => {
+    if (mkdirError) return callback(mkdirError);
+    const exampleEntries = fs.existsSync(EXAMPLE_INPUT_DOCS_DIR)
+      ? fs.readdirSync(EXAMPLE_INPUT_DOCS_DIR, { withFileTypes: true })
+          .filter((entry) => entry.isFile() && entry.name !== '.DS_Store')
+          .map((entry) => ({
+            source: path.join(EXAMPLE_INPUT_DOCS_DIR, entry.name),
+            target: entry.name,
+          }))
+      : [];
+    return copyFiles(staticFiles.concat(exampleEntries), seedDir, callback);
+  });
+}
+
+function snapshotCurrentPack(destinationDir, callback) {
+  const activePackDir = getLatestMeetingPackDir();
+  const fileSpecs = activePackDir ? collectPackSnapshotFiles(activePackDir) : getStaticSnapshotFiles();
+  return copyFiles(fileSpecs, destinationDir, callback);
 }
 
 function parseJsonBody(req, callback) {
@@ -125,13 +200,27 @@ const server = http.createServer((req, res) => {
       if (!payload.sessionId || typeof payload.sessionId !== 'string') return json(res, 400, { error: 'Missing sessionId string.' });
       if (!payload.session || typeof payload.session !== 'object') return json(res, 400, { error: 'Missing session object.' });
 
-      return ensureMinutesDir((dirError) => {
+      return ensureProjectInputDataDir((dirError) => {
         if (dirError) return json(res, 500, { error: dirError.message });
-        const filePath = getMinutesFilePath(payload.sessionId, payload.summary);
-        const markdown = renderMinutesMarkdown(payload.session, payload.summary || 'board-session', payload.sessionId);
-        return fs.writeFile(filePath, markdown, 'utf8', (writeError) => {
-          if (writeError) return json(res, 500, { error: writeError.message });
-          return json(res, 200, { ok: true, filePath: path.relative(process.cwd(), filePath) });
+        return seedInitialMeetingPack((seedError) => {
+          if (seedError) return json(res, 500, { error: seedError.message });
+          const meetingDir = getMeetingFolderPath(payload.sessionId, payload.summary || 'board-session');
+          const filePath = path.join(meetingDir, 'minutes.md');
+          const markdown = renderMinutesMarkdown(payload.session, payload.summary || 'board-session', payload.sessionId);
+          return fs.mkdir(meetingDir, { recursive: true }, (mkdirError) => {
+            if (mkdirError) return json(res, 500, { error: mkdirError.message });
+            return snapshotCurrentPack(meetingDir, (copyError) => {
+              if (copyError) return json(res, 500, { error: copyError.message });
+              return fs.writeFile(filePath, markdown, 'utf8', (writeError) => {
+                if (writeError) return json(res, 500, { error: writeError.message });
+                return json(res, 200, {
+                  ok: true,
+                  filePath: path.relative(process.cwd(), filePath),
+                  meetingDir: path.relative(process.cwd(), meetingDir),
+                });
+              });
+            });
+          });
         });
       });
     });
@@ -182,4 +271,10 @@ server.on('error', (error) => {
 });
 
 let currentPort = DEFAULT_PORT;
-startServer(currentPort);
+ensureProjectInputDataDir((dirError) => {
+  if (dirError) throw dirError;
+  seedInitialMeetingPack((seedError) => {
+    if (seedError) throw seedError;
+    startServer(currentPort);
+  });
+});
