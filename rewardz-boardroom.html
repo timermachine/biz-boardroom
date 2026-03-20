@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rewardz — Stakeholder Board</title>
+<title>Rewardz - Stakeholder Board</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 
@@ -33,7 +33,6 @@
     overflow: hidden;
   }
 
-  /* HEADER */
   header {
     display: flex;
     align-items: center;
@@ -43,6 +42,7 @@
     background: var(--surface);
     flex-shrink: 0;
   }
+
   .brand {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
@@ -51,7 +51,9 @@
     color: var(--accent);
     text-transform: uppercase;
   }
+
   .brand span { color: var(--muted); }
+
   .session-info {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
@@ -59,33 +61,38 @@
     display: flex;
     gap: 20px;
   }
+
   .live-dot {
     display: inline-block;
-    width: 6px; height: 6px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: var(--accent2);
     margin-right: 6px;
     animation: pulse 2s ease-in-out infinite;
   }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-  /* MAIN LAYOUT */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
   .main {
     display: flex;
     flex: 1;
     overflow: hidden;
   }
 
-  /* SIDEBAR — ATTENDEES */
   .sidebar {
-    width: 220px;
+    width: 250px;
     border-right: 1px solid var(--border);
     background: var(--surface);
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
     overflow-y: auto;
+    flex-shrink: 0;
   }
+
   .sidebar-header {
     padding: 14px 16px 10px;
     font-family: 'IBM Plex Mono', monospace;
@@ -95,31 +102,149 @@
     color: var(--muted);
     border-bottom: 1px solid var(--border);
   }
+
   .member {
-    padding: 10px 16px;
-    cursor: pointer;
     border-bottom: 1px solid var(--border);
     transition: background 0.15s;
     position: relative;
   }
+
   .member:hover { background: rgba(255,255,255,0.03); }
   .member.active { background: rgba(232,197,71,0.06); border-left: 2px solid var(--accent); }
-  .member.henry { }
+  .member.henry .member-name { color: var(--henry); }
   .member.henry .role { color: var(--henry); }
+
+  .member-toggle {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: inherit;
+    text-align: left;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+
+  .member-toggle-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .member-toggle-main {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .member-chevron {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+
+  .member.expanded .member-chevron {
+    transform: rotate(90deg);
+    color: var(--accent);
+  }
+
+  .member-name,
+  .role,
+  .member-note,
+  .member-summary {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .member-summary {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--text);
+  }
+
+  .member-summary .role {
+    font-size: inherit;
+    color: inherit;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
   .member-name {
     font-weight: 600;
-    font-size: 13px;
-    color: var(--text);
-    margin-bottom: 2px;
   }
+
   .role {
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
-  .member.henry .member-name { color: var(--henry); }
+
+  .member-note {
+    font-size: 10px;
+    color: #c8c8d0;
+    line-height: 1.4;
+  }
+
+  .member-details {
+    display: none;
+    padding: 0 16px 12px;
+  }
+
+  .member.expanded .member-details {
+    display: block;
+  }
+
+  .member-detail-grid {
+    display: grid;
+    gap: 8px;
+  }
+
+  .member-detail-item {
+    padding: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 3px;
+  }
+
+  .member-detail-label {
+    display: block;
+    margin-bottom: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .member-detail-copy {
+    font-size: 11px;
+    line-height: 1.45;
+    color: #c8c8d0;
+  }
+
+  .member-hovercard {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: calc(100% - 4px);
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border-active);
+    background: rgba(17,17,19,0.98);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+    display: none;
+    z-index: 20;
+  }
+
+  .member.show-hovercard .member-hovercard {
+    display: block;
+  }
+
+  .member-hovercard .member-detail-item {
+    background: rgba(255,255,255,0.02);
+  }
+
   .investor-badge {
     display: inline-block;
     font-size: 9px;
@@ -130,93 +255,104 @@
     padding: 1px 5px;
     margin-top: 3px;
     font-family: 'IBM Plex Mono', monospace;
-    letter-spacing: 0.05em;
   }
-  .member-note {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    color: rgba(232,232,236,0.4);
-    margin-top: 4px;
-    line-height: 1.4;
-  }
+
   .member-tools {
     margin-top: auto;
     padding: 14px 16px;
     border-top: 1px solid var(--border);
   }
-  .member-form {
-    padding: 12px;
+
+  .agenda-selector label,
+  .member-form-title,
+  .panel-title,
+  .detail-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .agenda-selector label,
+  .member-form-title,
+  .panel-title,
+  .detail-label {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .agenda-selector select,
+  .member-form input,
+  .member-form textarea,
+  textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border-active);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    padding: 8px 10px;
+    outline: none;
+  }
+
+  .member-form,
+  .panel-section {
     border: 1px solid var(--border);
     border-radius: 4px;
     background: rgba(255,255,255,0.02);
-    margin-top: 12px;
-  }
-  .member-form-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-  .member-form input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border-active);
-    border-radius: 3px;
-    color: var(--text);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 12px;
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    outline: none;
-  }
-  .member-form input:focus {
-    border-color: rgba(232,197,71,0.35);
-  }
-  .member-form textarea {
-    width: 100%;
-    min-height: 66px;
-    background: var(--bg);
-    border: 1px solid var(--border-active);
-    border-radius: 3px;
-    color: var(--text);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 12px;
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    outline: none;
-    resize: vertical;
-    line-height: 1.45;
-  }
-  .member-form textarea:focus {
-    border-color: rgba(232,197,71,0.35);
-  }
-  .mini-btn {
-    width: 100%;
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid rgba(232,197,71,0.25);
-    border-radius: 3px;
-    padding: 8px 10px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .mini-btn:hover {
-    background: rgba(232,197,71,0.08);
   }
 
-  /* CENTRE — TRANSCRIPT */
+  .member-form {
+    padding: 12px;
+    margin-top: 12px;
+  }
+
+  .member-form textarea {
+    min-height: 66px;
+    resize: vertical;
+    margin-top: 8px;
+  }
+
+  .member-form input + input { margin-top: 8px; }
+
+  .mini-btn,
+  .send-btn,
+  .danger-btn {
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+
+  .mini-btn,
+  .danger-btn {
+    width: 100%;
+    background: transparent;
+    padding: 8px 10px;
+    margin-top: 8px;
+  }
+
+  .mini-btn {
+    color: var(--accent);
+    border: 1px solid rgba(232,197,71,0.25);
+  }
+
+  .danger-btn {
+    color: var(--danger);
+    border: 1px solid rgba(232,84,71,0.25);
+  }
+
   .transcript-area {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     min-width: 0;
   }
+
   .agenda-bar {
     padding: 10px 20px;
     background: rgba(232,197,71,0.05);
@@ -225,77 +361,73 @@
     font-size: 11px;
     color: var(--accent);
     display: flex;
-    align-items: center;
     gap: 8px;
-    flex-shrink: 0;
   }
+
   .agenda-bar .sep { color: var(--border-active); }
 
   .messages {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    scroll-behavior: smooth;
   }
-  .messages::-webkit-scrollbar { width: 4px; }
-  .messages::-webkit-scrollbar-track { background: transparent; }
-  .messages::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 2px; }
 
   .message {
     display: flex;
     gap: 12px;
     padding: 12px 0;
     border-bottom: 1px solid rgba(255,255,255,0.03);
-    animation: fadeIn 0.25s ease;
   }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
 
   .avatar {
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
     border-radius: 3px;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     font-weight: 600;
     flex-shrink: 0;
-    margin-top: 1px;
   }
+
   .msg-content { flex: 1; min-width: 0; }
+
   .msg-header {
     display: flex;
-    align-items: baseline;
     gap: 8px;
+    align-items: baseline;
     margin-bottom: 5px;
   }
-  .msg-name {
-    font-weight: 600;
-    font-size: 13px;
-  }
-  .msg-title {
+
+  .msg-name { font-weight: 600; font-size: 13px; }
+
+  .msg-title,
+  .msg-time {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
+  }
+
+  .msg-title {
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.07em;
   }
+
   .msg-time {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
     color: var(--border-active);
     margin-left: auto;
   }
+
   .msg-text {
     line-height: 1.65;
     color: #c8c8d0;
     font-size: 13.5px;
   }
-  .msg-text strong { color: var(--text); font-weight: 600; }
-  .msg-text em { color: var(--muted); font-style: normal; font-size: 12px; }
 
-  /* tags */
+  .msg-text strong { color: var(--text); }
+
   .tag {
     display: inline-block;
     font-family: 'IBM Plex Mono', monospace;
@@ -303,47 +435,47 @@
     padding: 2px 6px;
     border-radius: 2px;
     margin-right: 4px;
-    border: 1px solid;
+    border: 1px solid rgba(232,197,71,0.25);
+    color: var(--accent);
+    background: rgba(232,197,71,0.1);
   }
-  .tag-challenge { background: rgba(232,84,71,0.1); color: var(--danger); border-color: rgba(232,84,71,0.25); }
-  .tag-data { background: rgba(79,195,161,0.1); color: var(--accent2); border-color: rgba(79,195,161,0.25); }
-  .tag-question { background: rgba(232,197,71,0.1); color: var(--accent); border-color: rgba(232,197,71,0.25); }
-  .tag-risk { background: rgba(232,84,71,0.12); color: #f08080; border-color: rgba(232,84,71,0.2); }
-  .tag-investor { background: rgba(196,160,240,0.1); color: var(--henry); border-color: rgba(196,160,240,0.25); }
 
-  /* TYPING INDICATOR */
   .typing-indicator {
     display: none;
-    padding: 10px 0;
+    padding: 10px 20px;
     align-items: center;
     gap: 8px;
     color: var(--muted);
     font-size: 12px;
     font-family: 'IBM Plex Mono', monospace;
   }
+
   .typing-indicator.visible { display: flex; }
+
   .dots { display: flex; gap: 3px; }
   .dots span {
-    width: 4px; height: 4px; border-radius: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
     background: var(--muted);
     animation: dotBounce 1.2s ease-in-out infinite;
   }
-  .dots span:nth-child(2){animation-delay:0.2s}
-  .dots span:nth-child(3){animation-delay:0.4s}
-  @keyframes dotBounce{0%,80%,100%{opacity:0.3}40%{opacity:1}}
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotBounce { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
 
-  /* INPUT AREA */
   .input-area {
     padding: 16px 20px;
     border-top: 1px solid var(--border);
     background: var(--surface);
-    flex-shrink: 0;
   }
+
   .input-row {
     display: flex;
     gap: 10px;
     align-items: flex-end;
   }
+
   .you-label {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
@@ -351,129 +483,100 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     padding-bottom: 8px;
-    flex-shrink: 0;
   }
+
   textarea {
     flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border-active);
-    border-radius: 3px;
-    color: var(--text);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 13.5px;
-    padding: 10px 12px;
-    resize: none;
     min-height: 44px;
     max-height: 120px;
-    outline: none;
-    transition: border-color 0.15s;
+    resize: none;
+    font-size: 13.5px;
     line-height: 1.5;
   }
-  textarea:focus { border-color: rgba(232,197,71,0.4); }
-  textarea::placeholder { color: var(--border-active); }
 
   .send-btn {
     background: var(--accent);
     color: #0a0a0b;
     border: none;
-    border-radius: 3px;
     padding: 10px 18px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: background 0.15s, transform 0.1s;
-    flex-shrink: 0;
     height: 44px;
+    flex-shrink: 0;
   }
-  .send-btn:hover { background: #f0d050; }
-  .send-btn:active { transform: scale(0.97); }
-  .send-btn:disabled { background: var(--border-active); color: var(--muted); cursor: not-allowed; }
+
   .save-btn {
     background: transparent;
     color: var(--accent);
     border: 1px solid rgba(232,197,71,0.25);
   }
-  .save-btn:hover { background: rgba(232,197,71,0.08); }
+
   .save-status {
     margin-top: 10px;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
     color: var(--muted);
-    min-height: 14px;
-    letter-spacing: 0.05em;
   }
 
-  /* AGENDA SELECTOR */
-  .agenda-selector {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .agenda-selector select {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border-active);
-    border-radius: 3px;
-    color: var(--text);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    padding: 6px 8px;
-    outline: none;
-    cursor: pointer;
-  }
-  .agenda-selector label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    display: block;
-    margin-bottom: 5px;
-  }
-
-  /* RIGHT PANEL */
   .right-panel {
-    width: 200px;
+    width: 300px;
     border-left: 1px solid var(--border);
     background: var(--surface);
     overflow-y: auto;
-    flex-shrink: 0;
+    padding: 14px;
     display: flex;
     flex-direction: column;
+    gap: 12px;
   }
+
   .panel-section {
-    padding: 14px 14px 10px;
-    border-bottom: 1px solid var(--border);
+    padding: 14px;
   }
-  .panel-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
+
   .metric {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
     margin-bottom: 7px;
+    position: relative;
+    gap: 10px;
   }
-  .metric-label {
-    font-size: 11px;
-    color: var(--muted);
-  }
+
+  .metric-label { font-size: 11px; color: var(--muted); }
   .metric-val {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     color: var(--accent2);
     font-weight: 600;
   }
-  .metric-val.warn { color: var(--accent); }
   .metric-val.bad { color: var(--danger); }
+
+  .metric-trigger {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    outline: none;
+  }
+
+  .metric-tooltip {
+    position: absolute;
+    left: auto;
+    right: 0;
+    width: min(320px, calc(100vw - 48px), calc(100vw - 48px));
+    max-width: calc(100vw - 48px);
+    top: calc(100% + 6px);
+    padding: 8px 9px;
+    border-radius: 3px;
+    border: 1px solid var(--border-active);
+    background: rgba(17,17,19,0.98);
+    color: #c8c8d0;
+    font-size: 11px;
+    line-height: 1.45;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+    display: none;
+    z-index: 15;
+  }
+
+  .metric-trigger.show-tooltip .metric-tooltip {
+    display: block;
+  }
 
   .focus-chip {
     display: block;
@@ -485,16 +588,99 @@
     color: var(--muted);
     margin-bottom: 5px;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
     border: 1px solid transparent;
   }
-  .focus-chip:hover { background: rgba(232,197,71,0.08); color: var(--accent); border-color: rgba(232,197,71,0.15); }
-  .focus-chip.active { background: rgba(232,197,71,0.1); color: var(--accent); border-color: rgba(232,197,71,0.25); }
+
+  .focus-chip.active {
+    background: rgba(232,197,71,0.1);
+    color: var(--accent);
+    border-color: rgba(232,197,71,0.25);
+  }
+
+  .breakout-form {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .breakout-members {
+    display: grid;
+    gap: 6px;
+    margin: 8px 0 10px;
+    max-height: 140px;
+    overflow-y: auto;
+  }
+
+  .breakout-member {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #c8c8d0;
+  }
+
+  .breakout-member input {
+    accent-color: var(--accent);
+  }
+
+  .breakout-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .breakout-room {
+    padding: 9px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .breakout-room-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .breakout-room-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  .breakout-room-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+  }
+
+  .breakout-room-copy {
+    font-size: 11px;
+    line-height: 1.45;
+    color: #c8c8d0;
+  }
+
+  .breakout-room-copy + .breakout-room-copy {
+    margin-top: 5px;
+  }
+
+  .breakout-close {
+    width: auto;
+    margin-top: 8px;
+    color: var(--muted);
+    border-color: rgba(255,255,255,0.09);
+  }
+
   .detail-name {
     font-weight: 600;
     font-size: 14px;
     margin-bottom: 3px;
   }
+
   .detail-role {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
@@ -503,98 +689,84 @@
     letter-spacing: 0.1em;
     margin-bottom: 10px;
   }
-  .detail-block {
-    margin-bottom: 12px;
-  }
-  .detail-label {
-    display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 5px;
-  }
+
+  .detail-block { margin-bottom: 12px; }
+
   .detail-copy {
     font-size: 12px;
     line-height: 1.55;
     color: #c8c8d0;
     white-space: pre-wrap;
   }
+
   .mood-row {
     display: flex;
     align-items: center;
     gap: 10px;
   }
+
   .mood-slider {
     flex: 1;
     accent-color: var(--accent);
   }
+
   .mood-value {
     min-width: 28px;
-    text-align: right;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     color: var(--accent);
+    text-align: right;
   }
+
   .context-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
+
   .context-item {
     padding: 8px;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.04);
     border-radius: 3px;
   }
+
   .context-head {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
     color: var(--border-active);
     margin-bottom: 4px;
   }
-  .danger-btn {
-    width: 100%;
-    background: transparent;
-    color: var(--danger);
-    border: 1px solid rgba(232,84,71,0.25);
-    border-radius: 3px;
-    padding: 8px 10px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-  }
-  .danger-btn:hover {
-    background: rgba(232,84,71,0.08);
+
+  @media (max-width: 980px) {
+    body { height: auto; overflow: auto; }
+    .main { flex-direction: column; height: auto; }
+    .sidebar, .right-panel { width: 100%; border: none; }
+    .right-panel { padding-top: 0; }
+    .input-row { flex-wrap: wrap; }
+    .send-btn { width: calc(50% - 5px); }
+    .member-hovercard { display: none !important; }
   }
 </style>
 </head>
 <body>
-
 <header>
   <div class="brand">REWARDZ <span>// BOARD SESSION</span></div>
   <div class="session-info">
     <span><span class="live-dot"></span>LIVE</span>
-    <span id="clock">—</span>
+    <span id="clock">--</span>
     <span>Q1 2026</span>
   </div>
 </header>
 
 <div class="main">
-
-  <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-header">Attendees</div>
     <div id="memberList"></div>
-
     <div class="member-tools">
       <div class="agenda-selector">
         <label>Direct question to</label>
-        <select id="targetSelect">
-        </select>
+        <select id="targetSelect"></select>
       </div>
       <div class="member-form">
         <div class="member-form-title">Add Board Member</div>
@@ -602,763 +774,70 @@
         <input id="newMemberTitle" type="text" placeholder="Title">
         <input id="newMemberExpertise" type="text" placeholder="Expertise / brief remit">
         <textarea id="newMemberPersonality" placeholder="Personality / operating style"></textarea>
-        <button class="mini-btn" type="button" onclick="addMember()">Add Member</button>
+        <button id="addMemberBtn" class="mini-btn" type="button">Add Member</button>
       </div>
     </div>
   </div>
 
-  <!-- TRANSCRIPT -->
   <div class="transcript-area">
     <div class="agenda-bar">
       <span>AGENDA</span>
       <span class="sep">|</span>
       <span id="agendaLabel">Select topic or raise floor</span>
     </div>
-
-    <div class="messages" id="messages">
-      <div class="message">
-        <div class="avatar" style="background:rgba(232,197,71,0.15);color:var(--accent)">EW</div>
-        <div class="msg-content">
-          <div class="msg-header">
-            <span class="msg-name" style="color:var(--accent)">Edward</span>
-            <span class="msg-title">CEO</span>
-            <span class="msg-time" id="t0">09:00</span>
-          </div>
-          <div class="msg-text">
-            <span class="tag tag-question">OPEN</span>
-            Board is convened. We have six months to prove first-mover position in QR-based shared loyalty across East Sussex. 
-            Henry has capital on the table. We are not here for validation — we are here to identify what breaks this model before the market does. 
-            Floor is open. Evidence on the table, assumptions challenged. Let's start.
-          </div>
-        </div>
-      </div>
-    </div>
-
+    <div class="messages" id="messages"></div>
     <div class="typing-indicator" id="typingIndicator">
       <div class="dots"><span></span><span></span><span></span></div>
-      <span id="typingName">Frank is responding...</span>
+      <span id="typingName">Board member is responding...</span>
     </div>
-
     <div class="input-area">
       <div class="input-row">
-        <span class="you-label">You →</span>
-        <textarea id="userInput" placeholder="Raise a point, present data, or ask a direct question..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-        <button class="send-btn save-btn" id="saveBtn" type="button" onclick="saveMinutes(true)">SAVE MINUTES</button>
-        <button class="send-btn" id="sendBtn" onclick="sendMessage()">SUBMIT</button>
+        <span class="you-label">You -&gt;</span>
+        <textarea id="userInput" placeholder="Raise a point, present data, or ask a direct question..." rows="1"></textarea>
+        <button class="send-btn save-btn" id="saveBtn" type="button">Save Minutes</button>
+        <button class="send-btn" id="sendBtn" type="button">Submit</button>
       </div>
       <div class="save-status" id="saveStatus">Minutes not saved yet.</div>
     </div>
   </div>
 
-  <!-- RIGHT PANEL -->
   <div class="right-panel">
     <div class="panel-section">
-      <div class="panel-title">Unit Economics</div>
-      <div class="metric"><span class="metric-label">Users (target)</span><span class="metric-val">400</span></div>
-      <div class="metric"><span class="metric-label">Merchants</span><span class="metric-val">20</span></div>
-      <div class="metric"><span class="metric-label">Gross / yr</span><span class="metric-val">£26k</span></div>
-      <div class="metric"><span class="metric-label">Margin / yr</span><span class="metric-val warn">£6.5k</span></div>
-      <div class="metric"><span class="metric-label">Fee / scan</span><span class="metric-val">~20p</span></div>
+      <div class="panel-title">Board Health</div>
+      <div id="boardHealth"></div>
     </div>
     <div class="panel-section">
-      <div class="panel-title">Beachhead</div>
-      <div class="metric"><span class="metric-label">Bexhill</span><span class="metric-val">~8 shops</span></div>
-      <div class="metric"><span class="metric-label">Hastings</span><span class="metric-val">~10 shops</span></div>
-      <div class="metric"><span class="metric-label">Eastbourne</span><span class="metric-val">~9 shops</span></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-title">Raise</div>
-      <div class="metric"><span class="metric-label">Ask</span><span class="metric-val warn">$1M</span></div>
-      <div class="metric"><span class="metric-label">Equity</span><span class="metric-val bad">1%</span></div>
-      <div class="metric"><span class="metric-label">Impl. Val.</span><span class="metric-val bad">$100M</span></div>
+      <div class="panel-title">Session Map</div>
+      <div id="sessionMap"></div>
     </div>
     <div class="panel-section">
       <div class="panel-title">Quick Topics</div>
-      <span class="focus-chip" onclick="setAgenda('Unit Economics & Runway')">Unit Economics</span>
-      <span class="focus-chip" onclick="setAgenda('Tech Architecture & Security')">Tech / QR Security</span>
-      <span class="focus-chip" onclick="setAgenda('Funding & Valuation')">Funding Ask</span>
-      <span class="focus-chip" onclick="setAgenda('Go-To-Market — East Sussex')">GTM Strategy</span>
-      <span class="focus-chip" onclick="setAgenda('Regulatory / FCA Compliance')">FCA / Legal</span>
-      <span class="focus-chip" onclick="setAgenda('Product Design & UX')">Product / UX</span>
-      <span class="focus-chip" onclick="setAgenda('Scale Path — US & China')">Scale Path</span>
-      <span class="focus-chip" onclick="setAgenda('Competitive Threats')">Competitive Risk</span>
+      <span class="focus-chip" data-agenda="Unit Economics & Runway">Unit Economics</span>
+      <span class="focus-chip" data-agenda="Tech Architecture & Security">Tech / QR Security</span>
+      <span class="focus-chip" data-agenda="Funding & Valuation">Funding Ask</span>
+      <span class="focus-chip" data-agenda="Go-To-Market - East Sussex">GTM Strategy</span>
+      <span class="focus-chip" data-agenda="Regulatory / FCA Compliance">FCA / Legal</span>
+      <span class="focus-chip" data-agenda="Product Design & UX">Product / UX</span>
+      <span class="focus-chip" data-agenda="Scale Path - US & China">Scale Path</span>
+      <span class="focus-chip" data-agenda="Competitive Threats">Competitive Risk</span>
+    </div>
+    <div class="panel-section">
+      <div class="panel-title">Breakout Rooms</div>
+      <div id="breakoutRooms"></div>
+      <div class="breakout-form">
+        <label class="detail-label" for="breakoutIssue">Issue To Iron Out</label>
+        <input id="breakoutIssue" type="text" placeholder="e.g. QR fraud vs onboarding friction">
+        <div class="breakout-members" id="breakoutMemberChoices"></div>
+        <button id="createBreakoutBtn" class="mini-btn" type="button">Create Breakout Room</button>
+      </div>
     </div>
     <div class="panel-section">
       <div class="panel-title">Member Instructions</div>
       <div id="memberInspector"></div>
     </div>
   </div>
-
 </div>
 
-<script>
-const INTRO_TEXT = `Board is convened. We have six months to prove first-mover position in QR-based shared loyalty across East Sussex.
-Henry has capital on the table. We are not here for validation — we are here to identify what breaks this model before the market does.
-Floor is open. Evidence on the table, assumptions challenged. Let's start.`;
-
-const MEMBERS = {
-  edward:    { name: 'Edward',    title: 'CEO',             initials: 'EW', color: '#e8c547', bg: 'rgba(232,197,71,0.15)', expertise: 'Strategic vision, team decisions, go-to-market prioritisation, competitive positioning', personality: 'Directive, impatient with drift, wants decisions reduced to sequencing and market leverage.', keywords: ['ceo', 'strategy', 'vision', 'direction', 'lead', 'team', 'decision', 'pivot', 'priority'] },
-  terry:     { name: 'Terry',     title: 'CTO',             initials: 'TC', color: '#4fc3a1', bg: 'rgba(79,195,161,0.15)', expertise: 'Technical architecture, QR security, scalability, infrastructure costs, fraud risk', personality: 'Dry, implementation-first, suspicious of claims that skip failure modes or operational detail.', keywords: ['tech', 'qr', 'nfc', 'app', 'scan', 'security', 'api', 'stack', 'build', 'code', 'encrypt', 'cycle'] },
-  frank:     { name: 'Frank',     title: 'CFO',             initials: 'FK', color: '#e88a47', bg: 'rgba(232,138,71,0.15)', expertise: 'Unit economics, burn rate, funding structure, compliance risk, financial projections', personality: 'Controlled and forensic, defaults to downside analysis and asks who carries the risk.', keywords: ['cost', 'revenue', 'margin', 'fund', 'finance', 'cash', 'profit', 'unit', 'economic', 'raise', 'valuation', 'equity', 'burn'] },
-  des:       { name: 'Des',       title: 'Chief Designer',  initials: 'DS', color: '#47a8e8', bg: 'rgba(71,168,232,0.15)', expertise: 'UX, merchant onboarding, customer adoption friction, brand identity', personality: 'Calm but exacting, cares about user friction, trust signals, and whether the product feels legible.', keywords: ['design', 'ux', 'ui', 'brand', 'experience', 'onboard', 'interface', 'look', 'feel', 'user'] },
-  pritchard: { name: 'Pritchard', title: 'Chief Pitcher',   initials: 'PR', color: '#e847a8', bg: 'rgba(232,71,168,0.15)', expertise: 'Narrative, investor messaging, pitch clarity, stakeholder persuasion', personality: 'Sharp and rhetorical, pressures weak framing and pushes toward cleaner narrative contrast.', keywords: ['pitch', 'investor', 'deck', 'narrative', 'story', 'present', 'raise', 'sell', 'message'] },
-  mat:       { name: 'Mat',       title: 'Math & Physics',  initials: 'MT', color: '#a8e847', bg: 'rgba(168,232,71,0.15)', expertise: 'Growth modelling, network effects, statistical assumptions, scaling formulae', personality: 'Analytical and detached, interrogates whether the numbers cohere or merely sound plausible.', keywords: ['model', 'math', 'number', 'data', 'scale', 'formula', 'projection', 'growth', 'network', 'effect', 'metric'] },
-  henry:     { name: 'Henry',     title: 'Lead Investor',   initials: 'HA', color: '#c4a0f0', bg: 'rgba(196,160,240,0.15)', expertise: 'Capital allocation, valuation justification, exit timeline, downside protection', personality: 'Patient but unsentimental, expects capital protection, leverage, and a credible exit path.', keywords: ['invest', 'equity', 'return', 'stake', 'exit', 'ipo', 'valuation', 'risk', 'board'], badge: 'LEAD STOCKHOLDER', className: 'henry' },
-  chris:     { name: 'Chris',     title: 'Project Coordinator', initials: 'CH', color: '#ffb347', bg: 'rgba(255,179,71,0.15)', expertise: 'Project coordination, facilitation, dependency clearing, progress sequencing, deadlock resolution', personality: 'Pragmatic facilitator who sees pathways through blocked discussions and forces a workable order of operations when the room stalls.', keywords: ['project', 'coordinator', 'facilitator', 'pathway', 'pathways', 'progress', 'order', 'sequence', 'blocker', 'blocked', 'dependency', 'dependencies', 'impasse', 'stuck', 'paralysis'] },
-  psy:       { name: 'Psy',       title: 'Psychology Expert', initials: 'PY', color: '#7dd3a7', bg: 'rgba(125,211,167,0.15)', expertise: 'Psychology, motivation, behaviour change, persuasion, trust, habit formation', personality: 'Observant and behaviour-focused, tests whether people will actually adopt, trust, and repeat the intended behaviour.', keywords: ['psychology', 'behaviour', 'behavior', 'motivation', 'habit', 'trust', 'adoption', 'persuasion', 'friction', 'user', 'customer'] },
-  archie:    { name: 'Archie',    title: 'Technology Architect', initials: 'AR', color: '#6ec1ff', bg: 'rgba(110,193,255,0.15)', expertise: 'Technology architecture, systems design, platform boundaries, integration strategy, technical tradeoffs', personality: 'Systems-level thinker who reduces complexity into architecture decisions, interfaces, and sequencing constraints.', keywords: ['architect', 'architecture', 'system', 'systems', 'integration', 'platform', 'boundary', 'service', 'infrastructure', 'design', 'tech'] },
-  reaf:      { name: 'Reaf',      title: 'Frontend Architect', initials: 'RF', color: '#ff8fb1', bg: 'rgba(255,143,177,0.15)', expertise: 'Frontend architecture, React architecture, component systems, state management, client-side performance', personality: 'Frontend specialist who pushes for maintainable React structure, clear state boundaries, and scalable UI composition.', keywords: ['frontend', 'front-end', 'react', 'component', 'state', 'ui', 'client', 'render', 'hooks', 'architecture'] },
-};
-
-const MEMBER_STYLES = [
-  { color: '#e8c547', bg: 'rgba(232,197,71,0.15)' },
-  { color: '#4fc3a1', bg: 'rgba(79,195,161,0.15)' },
-  { color: '#e88a47', bg: 'rgba(232,138,71,0.15)' },
-  { color: '#47a8e8', bg: 'rgba(71,168,232,0.15)' },
-  { color: '#e847a8', bg: 'rgba(232,71,168,0.15)' },
-  { color: '#a8e847', bg: 'rgba(168,232,71,0.15)' },
-  { color: '#c4a0f0', bg: 'rgba(196,160,240,0.15)' },
-  { color: '#f26b8a', bg: 'rgba(242,107,138,0.15)' },
-  { color: '#5fd1ff', bg: 'rgba(95,209,255,0.15)' },
-];
-const BUILTIN_MEMBER_IDS = Object.keys(MEMBERS);
-const CUSTOM_MEMBERS_STORAGE_KEY = 'rewardz-board-custom-members-v1';
-const DEFAULT_MOOD_EXCEPTIONS = new Set(['henry', 'edward', 'chris']);
-
-const transcriptMessages = [
-  { speaker: 'Edward', title: 'CEO', time: '09:00', text: INTRO_TEXT, tags: ['OPEN'] }
-];
-
-for (const memberId of Object.keys(MEMBERS)) {
-  MEMBERS[memberId].mood = MEMBERS[memberId].mood || getDefaultMood(memberId);
-}
-
-let memberOrder = Object.keys(MEMBERS);
-let currentFocus = 'edward';
-let currentAgenda = '';
-let saveTimer = null;
-let minutesSessionId = createSessionId();
-let minutesFilePath = '';
-
-function setFocus(member) {
-  document.querySelectorAll('.member').forEach(el => el.classList.remove('active'));
-  const memberEl = document.querySelector(`[data-member="${member}"]`);
-  if (memberEl) memberEl.classList.add('active');
-  document.getElementById('targetSelect').value = member;
-  currentFocus = member;
-  renderMemberInspector();
-}
-
-function setAgenda(label) {
-  document.querySelectorAll('.focus-chip').forEach(c => c.classList.remove('active'));
-  event.target.classList.add('active');
-  currentAgenda = label;
-  document.getElementById('agendaLabel').textContent = label;
-}
-
-function getTime() {
-  return new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
-}
-
-function updateClock() {
-  document.getElementById('clock').textContent = getTime();
-}
-updateClock();
-setInterval(updateClock, 60000);
-
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function appendMessage(memberId, text, tags=[]) {
-  const m = MEMBERS[memberId];
-  const msgs = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = 'message';
-  const tagHtml = tags.map(t => `<span class="tag tag-${t.type}">${t.label}</span>`).join('');
-  div.innerHTML = `
-    <div class="avatar" style="background:${m.bg};color:${m.color}">${m.initials}</div>
-    <div class="msg-content">
-      <div class="msg-header">
-        <span class="msg-name" style="color:${m.color}">${m.name}</span>
-        <span class="msg-title">${m.title}</span>
-        <span class="msg-time">${getTime()}</span>
-      </div>
-      <div class="msg-text">${tagHtml}${text}</div>
-    </div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function appendUserMessage(text) {
-  const msgs = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = 'message';
-  div.innerHTML = `
-    <div class="avatar" style="background:rgba(255,255,255,0.06);color:#888">YOU</div>
-    <div class="msg-content">
-      <div class="msg-header">
-        <span class="msg-name" style="color:#999">You</span>
-        <span class="msg-title">FLOOR</span>
-        <span class="msg-time">${getTime()}</span>
-      </div>
-      <div class="msg-text" style="color:#aaa">${escapeHtml(text)}</div>
-    </div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function createSessionId() {
-  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-    return window.crypto.randomUUID();
-  }
-  return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function slugify(value) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 48);
-}
-
-function getInitials(name) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return (parts[0]?.[0] || '') + (parts[1]?.[0] || parts[0]?.[1] || '');
-}
-
-function getStyleForMember(index) {
-  return MEMBER_STYLES[index % MEMBER_STYLES.length];
-}
-
-function getDefaultMood(memberId) {
-  return DEFAULT_MOOD_EXCEPTIONS.has(memberId) ? 1 : 5;
-}
-
-function persistCustomMembers() {
-  const customMembers = memberOrder
-    .filter((memberId) => !BUILTIN_MEMBER_IDS.includes(memberId))
-    .map((memberId) => {
-      const member = MEMBERS[memberId];
-      return {
-        id: memberId,
-        name: member.name,
-        title: member.title,
-        expertise: member.expertise,
-        personality: member.personality || '',
-        mood: member.mood,
-        initials: member.initials,
-        color: member.color,
-        bg: member.bg,
-        keywords: member.keywords || [],
-        badge: member.badge || '',
-        className: member.className || '',
-      };
-    });
-  window.localStorage.setItem(CUSTOM_MEMBERS_STORAGE_KEY, JSON.stringify(customMembers));
-}
-
-function loadCustomMembers() {
-  const raw = window.localStorage.getItem(CUSTOM_MEMBERS_STORAGE_KEY);
-  if (!raw) return;
-
-  let customMembers;
-  try {
-    customMembers = JSON.parse(raw);
-  } catch (err) {
-    console.warn('Could not parse saved custom members.', err);
-    return;
-  }
-
-  if (!Array.isArray(customMembers)) return;
-
-  for (const saved of customMembers) {
-    if (!saved || typeof saved !== 'object') continue;
-    if (!saved.id || MEMBERS[saved.id]) continue;
-    if (!saved.name || !saved.title || !saved.expertise) continue;
-
-    MEMBERS[saved.id] = {
-      name: saved.name,
-      title: saved.title,
-      expertise: saved.expertise,
-      personality: saved.personality || 'Direct, domain-bound, and expected to challenge weak assumptions without padding.',
-      mood: Number.isFinite(saved.mood) ? saved.mood : 5,
-      initials: saved.initials || getInitials(saved.name).toUpperCase(),
-      color: saved.color || getStyleForMember(memberOrder.length).color,
-      bg: saved.bg || getStyleForMember(memberOrder.length).bg,
-      keywords: Array.isArray(saved.keywords)
-        ? saved.keywords
-        : saved.expertise.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).slice(0, 16),
-      badge: saved.badge || '',
-      className: saved.className || '',
-    };
-    memberOrder.push(saved.id);
-  }
-}
-
-function renderMembers() {
-  const container = document.getElementById('memberList');
-  container.innerHTML = memberOrder.map((memberId) => {
-    const member = MEMBERS[memberId];
-    const note = member.expertise ? `<div class="member-note">${escapeHtml(member.expertise)}</div>` : '';
-    const badge = member.badge ? `<div class="investor-badge">${escapeHtml(member.badge)}</div>` : '';
-    const className = ['member', member.className || '', currentFocus === memberId ? 'active' : ''].filter(Boolean).join(' ');
-    return `
-      <div class="${className}" data-member="${memberId}" onclick="setFocus('${memberId}')">
-        <div class="member-name">${escapeHtml(member.name)}</div>
-        <div class="role">${escapeHtml(member.title)}</div>
-        ${badge}
-        ${note}
-      </div>`;
-  }).join('');
-}
-
-function truncateText(text, length=180) {
-  if (!text) return '';
-  return text.length > length ? `${text.slice(0, length - 1)}…` : text;
-}
-
-function getMemberContext(memberId) {
-  return transcriptMessages
-    .filter((entry) => MEMBERS[memberId] && entry.speaker === MEMBERS[memberId].name)
-    .slice(-3)
-    .map((entry) => ({
-      time: entry.time,
-      title: entry.title,
-      text: truncateText(entry.text, 180),
-    }));
-}
-
-function buildInstructionPreview(memberId) {
-  const member = MEMBERS[memberId];
-  const context = getMemberContext(memberId)
-    .map((entry) => `${entry.time}: ${entry.text}`)
-    .join(' | ');
-  return `${member.name} (${member.title}). Moodometer: ${member.mood || getDefaultMood(memberId)}/10. Personality: ${member.personality || 'Direct and domain-bound.'} Specialism: ${member.expertise || 'None recorded.'}${context ? ` Recent context: ${context}` : ''}`;
-}
-
-function renderMemberInspector() {
-  const member = MEMBERS[currentFocus];
-  const container = document.getElementById('memberInspector');
-  if (!member) {
-    container.innerHTML = '<div class="detail-copy">Select a board member.</div>';
-    return;
-  }
-
-  const recentContext = getMemberContext(currentFocus);
-  const contextHtml = recentContext.length
-    ? `<div class="context-list">${recentContext.map((entry) => `
-        <div class="context-item">
-          <div class="context-head">${escapeHtml(entry.time)} · ${escapeHtml(entry.title)}</div>
-          <div class="detail-copy">${escapeHtml(entry.text)}</div>
-        </div>`).join('')}</div>`
-    : '<div class="detail-copy">No accrued session context yet.</div>';
-
-  const deleteHtml = BUILTIN_MEMBER_IDS.includes(currentFocus)
-    ? ''
-    : '<button class="danger-btn" type="button" onclick="deleteCurrentMember()">Delete Member</button>';
-  const mood = member.mood || getDefaultMood(currentFocus);
-
-  container.innerHTML = `
-    <div class="detail-name" style="color:${member.color}">${escapeHtml(member.name)}</div>
-    <div class="detail-role">${escapeHtml(member.title)}</div>
-    <div class="detail-block">
-      <span class="detail-label">Moodometer</span>
-      <div class="mood-row">
-        <input class="mood-slider" type="range" min="1" max="10" step="1" value="${mood}" oninput="setMemberMood('${currentFocus}', Number(this.value))">
-        <span class="mood-value">${mood}</span>
-      </div>
-      <div class="detail-copy">${escapeHtml(describeMood(mood))}</div>
-    </div>
-    <div class="detail-block">
-      <span class="detail-label">Personality</span>
-      <div class="detail-copy">${escapeHtml(member.personality || 'No personality notes recorded.')}</div>
-    </div>
-    <div class="detail-block">
-      <span class="detail-label">Specialisms</span>
-      <div class="detail-copy">${escapeHtml(member.expertise || 'No specialist remit recorded.')}</div>
-    </div>
-    <div class="detail-block">
-      <span class="detail-label">Prompt Instruction</span>
-      <div class="detail-copy">${escapeHtml(buildInstructionPreview(currentFocus))}</div>
-    </div>
-    <div class="detail-block">
-      <span class="detail-label">Accrued Context</span>
-      ${contextHtml}
-    </div>
-    ${deleteHtml}`;
-}
-
-function renderTargetOptions() {
-  const select = document.getElementById('targetSelect');
-  const previous = select.value || 'board';
-  const options = ['<option value="board">Full Board</option>']
-    .concat(memberOrder.map((memberId) => {
-      const member = MEMBERS[memberId];
-      return `<option value="${memberId}">${escapeHtml(member.name)} (${escapeHtml(member.title)})</option>`;
-    }));
-  select.innerHTML = options.join('');
-  select.value = memberOrder.includes(previous) || previous === 'board' ? previous : 'board';
-}
-
-function recordTranscript(speaker, title, text, tags=[]) {
-  transcriptMessages.push({
-    speaker,
-    title,
-    text,
-    tags: tags.map((tag) => tag.label),
-    time: getTime(),
-  });
-  renderMemberInspector();
-}
-
-function deriveSessionSummary() {
-  if (currentAgenda) return currentAgenda;
-  const firstUserMessage = transcriptMessages.find((entry) => entry.speaker === 'You');
-  if (firstUserMessage) return firstUserMessage.text;
-  return 'board-session';
-}
-
-function buildMinutesMarkdown() {
-  const attendees = memberOrder.map((memberId) => {
-    const member = MEMBERS[memberId];
-    return `- ${member.name} — ${member.title}${member.expertise ? ` (${member.expertise})` : ''} [Mood ${member.mood || getDefaultMood(memberId)}/10]`;
-  }).join('\n');
-
-  const transcript = transcriptMessages.map((entry) => {
-    const tagText = entry.tags.length ? ` [${entry.tags.join(', ')}]` : '';
-    return `### ${entry.time} · ${entry.speaker} (${entry.title})${tagText}\n\n${entry.text}\n`;
-  }).join('\n');
-
-  return `# Rewardz Board Minutes
-
-- Session Summary: ${deriveSessionSummary()}
-- Saved At: ${new Date().toLocaleString('en-GB')}
-- Agenda: ${currentAgenda || 'Open floor'}
-- Minutes Session ID: ${minutesSessionId}
-
-## Attendees
-
-${attendees}
-
-## Transcript
-
-${transcript}`;
-}
-
-function setSaveStatus(text) {
-  document.getElementById('saveStatus').textContent = text;
-}
-
-function queueMinutesSave() {
-  clearTimeout(saveTimer);
-  setSaveStatus('Minutes pending save...');
-  saveTimer = setTimeout(() => {
-    saveMinutes(false);
-  }, 900);
-}
-
-async function saveMinutes(showSuccess) {
-  clearTimeout(saveTimer);
-  const saveBtn = document.getElementById('saveBtn');
-  saveBtn.disabled = true;
-  setSaveStatus('Saving minutes...');
-
-  try {
-    const response = await fetch('/api/minutes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: minutesSessionId,
-        summary: deriveSessionSummary(),
-        content: buildMinutesMarkdown(),
-      }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-    minutesFilePath = data.filePath || minutesFilePath;
-    const statusText = minutesFilePath
-      ? `Saved to ${minutesFilePath}`
-      : 'Minutes saved.';
-    if (showSuccess) setSaveStatus(statusText);
-    else setSaveStatus(statusText);
-  } catch (err) {
-    setSaveStatus(`Save failed: ${err.message}`);
-  } finally {
-    saveBtn.disabled = false;
-  }
-}
-
-function addMember() {
-  const nameInput = document.getElementById('newMemberName');
-  const titleInput = document.getElementById('newMemberTitle');
-  const expertiseInput = document.getElementById('newMemberExpertise');
-  const personalityInput = document.getElementById('newMemberPersonality');
-  const name = nameInput.value.trim();
-  const title = titleInput.value.trim();
-  const expertise = expertiseInput.value.trim();
-  const personality = personalityInput.value.trim();
-
-  if (!name || !title || !expertise || !personality) {
-    setSaveStatus('Add member requires name, title, expertise, and personality.');
-    return;
-  }
-
-  let memberId = slugify(name) || `member-${memberOrder.length + 1}`;
-  while (MEMBERS[memberId]) memberId = `${memberId}-${memberOrder.length + 1}`;
-
-  const style = getStyleForMember(memberOrder.length);
-  MEMBERS[memberId] = {
-    name,
-    title,
-    expertise,
-    personality,
-    mood: 5,
-    initials: getInitials(name).toUpperCase(),
-    color: style.color,
-    bg: style.bg,
-    keywords: expertise.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).slice(0, 16),
-  };
-  memberOrder.push(memberId);
-  persistCustomMembers();
-  renderMembers();
-  renderTargetOptions();
-  setFocus(memberId);
-  recordTranscript('Clerk', 'Session Admin', `Added board member ${name} (${title}) with remit: ${expertise}.`, [{ label: 'ADMIN' }]);
-  queueMinutesSave();
-
-  nameInput.value = '';
-  titleInput.value = '';
-  expertiseInput.value = '';
-  personalityInput.value = '';
-  setSaveStatus(`Added ${name} to the board session.`);
-}
-
-function deleteCurrentMember() {
-  if (BUILTIN_MEMBER_IDS.includes(currentFocus)) {
-    setSaveStatus('Built-in members cannot be deleted.');
-    return;
-  }
-  const member = MEMBERS[currentFocus];
-  if (!member) return;
-
-  const memberId = currentFocus;
-  memberOrder = memberOrder.filter((id) => id !== memberId);
-  delete MEMBERS[memberId];
-  persistCustomMembers();
-
-  currentFocus = memberOrder[0] || null;
-  renderMembers();
-  renderTargetOptions();
-  if (currentFocus) {
-    setFocus(currentFocus);
-  } else {
-    renderMemberInspector();
-  }
-
-  recordTranscript('Clerk', 'Session Admin', `Removed board member ${member.name} (${member.title}) from the session.`, [{ label: 'ADMIN' }]);
-  queueMinutesSave();
-  setSaveStatus(`Deleted ${member.name} from the board session.`);
-}
-
-function describeMood(level) {
-  if (level <= 2) return 'Strict, evidence-first, low agreeableness, minimal flexibility.';
-  if (level <= 4) return 'Firm and challenging, but willing to explore alternatives briefly.';
-  if (level <= 6) return 'Balanced between rigor and flexibility, somewhat more agreeable.';
-  if (level <= 8) return 'Noticeably more agreeable and adaptive, still anchored in role expertise.';
-  return 'Highly agreeable and flexible, prioritises progress and collaborative exploration.';
-}
-
-function setMemberMood(memberId, level) {
-  const member = MEMBERS[memberId];
-  if (!member) return;
-  const clamped = Math.max(1, Math.min(10, Number(level) || getDefaultMood(memberId)));
-  member.mood = clamped;
-  if (!BUILTIN_MEMBER_IDS.includes(memberId)) persistCustomMembers();
-  renderMemberInspector();
-  queueMinutesSave();
-}
-
-function memberKeywords(member) {
-  const base = [];
-  if (Array.isArray(member.keywords)) base.push(...member.keywords);
-  base.push(member.name, member.title, member.expertise || '', member.personality || '');
-  return base
-    .join(' ')
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter(Boolean);
-}
-
-function computeRelevance(memberId, text) {
-  const words = text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-  const keywordSet = new Set(memberKeywords(MEMBERS[memberId]));
-  let score = 1;
-  for (const word of words) {
-    if (keywordSet.has(word)) score += 2;
-  }
-  return score;
-}
-
-function showTyping(memberName) {
-  const t = document.getElementById('typingIndicator');
-  document.getElementById('typingName').textContent = `${memberName} is responding...`;
-  t.classList.add('visible');
-  document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-}
-function hideTyping() {
-  document.getElementById('typingIndicator').classList.remove('visible');
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-}
-
-async function sendMessage() {
-  const input = document.getElementById('userInput');
-  const text = input.value.trim();
-  if (!text) return;
-
-  const btn = document.getElementById('sendBtn');
-  btn.disabled = true;
-  input.value = '';
-  input.style.height = '44px';
-
-  appendUserMessage(text);
-  recordTranscript('You', 'Floor', text);
-
-  const target = document.getElementById('targetSelect').value;
-  const respondents = target === 'board' 
-    ? pickBoardRespondents(text) 
-    : [target];
-
-  const systemPrompt = buildSystemPrompt(target, text);
-
-  // Sequence responses
-  for (const memberId of respondents) {
-    const m = MEMBERS[memberId];
-    showTyping(m.name);
-    await delay(800 + Math.random() * 1000);
-
-    try {
-      const response = await fetch('/api/codex', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: buildPromptForMember(memberId, text, systemPrompt) })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      const reply = data.content || '[No response]';
-      hideTyping();
-      const tags = inferTags(memberId, reply);
-      appendMessage(memberId, formatReply(reply), tags);
-      recordTranscript(m.name, m.title, reply, tags);
-    } catch(err) {
-      hideTyping();
-      appendMessage(memberId, escapeHtml(`[Connection error - ${err.message}]`));
-      recordTranscript(m.name, m.title, `[Connection error — ${err.message}]`, [{ label: 'ERROR' }]);
-    }
-    await delay(400);
-  }
-
-  btn.disabled = false;
-  input.focus();
-  queueMinutesSave();
-}
-
-function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-function pickBoardRespondents(text) {
-  const sorted = [...memberOrder].sort((a, b) => computeRelevance(b, text) - computeRelevance(a, text));
-  const n = 2 + Math.floor(Math.random()*2);
-  return sorted.slice(0, n);
-}
-
-function buildSystemPrompt(target, userText) {
-  const specialistLines = memberOrder.map((memberId) => {
-    const member = MEMBERS[memberId];
-    return `- ${member.name} (${member.title}): ${member.expertise}. Personality: ${member.personality || 'Direct and domain-bound.'} Moodometer: ${member.mood || getDefaultMood(memberId)}/10.`;
-  }).join('\n');
-
-  return `You are running a real stakeholder board meeting for a startup called Rewardz (also codenamed Tenthly).
-
-COMPANY: Rewardz is a QR-based shared loyalty network for independent merchants. Customers earn stamps or cash wallet credits (10 stamps = reward or payout). Merchants pay ~20p/scan or 1% of transaction. Platform takes ~5p cut.
-BEACHHEAD: East Sussex — Bexhill (~8 indie cafés), Hastings (~10), Eastbourne (~9). Expand to restaurants, barbers, town-wide currency.
-UNIT ECONOMICS: 400 users, 20 merchants, 1 town = ~£26k gross/yr, ~£6.5k margin.
-FUNDING: $1M ask at 1% equity ($100M implied valuation). 4-layer protection: non-renegotiation clause, overfund buffer (1.5x), milestone-locked tranches, anti-dilution.
-TECH: BYOD merchant app (NFC/QR reader), cryptographic QR cycling every 30s + post-scan, customer wallet app. Stripe Connect for payments. FCA compliance from day one.
-ETHICS: 7 Covenants — indie-first, community-focused, anti-chain bias.
-TIMELINE: 6-month first-mover window. US + China expansion mandatory by month 6.
-
-BOARD RULES:
-- This is a professional, evidence-based board meeting. Zero friendliness bias.
-- Never compliment the person asking. Never say "great question", "good point", "interesting".
-- Always challenge assumptions. Demand specifics. Cite data or flag its absence.
-- If a claim lacks evidence, say so bluntly.
-- Each member stays strictly in their domain expertise.
-- Each response is 2-5 sentences. Dense, direct, no padding.
-- Responses may end with a sharp question back to the room.
-- Henry is the lead angel investor. He is focused on ROI, exit path, and capital protection. He is not hostile but will not let financials slide.
-
-THE SPECIALISTS:
-${specialistLines}
-
-Respond ONLY as the specified character(s). No roleplay meta-commentary. No "as [name] I would say". Just speak directly as that person. DO NOT use markdown headers. Plain sentences only.`;
-}
-
-function buildPromptForMember(memberId, userText, systemPrompt) {
-  const m = MEMBERS[memberId];
-  const agenda = currentAgenda ? `Current agenda item: ${currentAgenda}. ` : '';
-  const accruedContext = getMemberContext(memberId)
-    .map((entry) => `${entry.time}: ${entry.text}`)
-    .join(' | ');
-  const mood = m.mood || getDefaultMood(memberId);
-  return `${systemPrompt}
-
-${agenda}The floor has raised the following: "${userText}"
-
-Respond as ${m.name} (${m.title}). Personality: ${m.personality || 'Direct and domain-bound.'} Moodometer: ${mood}/10 where 1 means strict, no-bias, evidence-heavy and low agreeableness, and 10 means more agreeable, flexible, and collaborative while still staying in role. Stay strictly in your domain. ${accruedContext ? `Recent context from this session: ${accruedContext}. ` : ''}Calibrate tone and flexibility to that mood setting. 2-4 sentences max.`;
-}
-
-function formatReply(text) {
-  // light formatting: bold any numbers/percentages/£/$
-  return escapeHtml(text)
-    .replace(/£[\d,.]+[kKmMbB]?/g, '<strong>$&</strong>')
-    .replace(/\$[\d,.]+[kKmMbB]?/g, '<strong>$&</strong>')
-    .replace(/\b\d+%/g, '<strong>$&</strong>')
-    .replace(/\b\d{1,3}(,\d{3})+(\.\d+)?\b/g, '<strong>$&</strong>');
-}
-
-function inferTags(memberId, text) {
-  const tags = [];
-  if (/\?/.test(text)) tags.push({type:'question', label:'QUESTION'});
-  if (/risk|gap|missing|no evidence|unproven|assumption|concern|problem|issue|wrong|incorrect|doesn't|won't|can't/i.test(text)) tags.push({type:'challenge', label:'CHALLENGE'});
-  if (/£|\$|\d+%|data|metric|number|figure|model|projection/i.test(text)) tags.push({type:'data', label:'DATA'});
-  if (memberId === 'henry') tags.push({type:'investor', label:'INVESTOR'});
-  return tags.slice(0,2);
-}
-
-loadCustomMembers();
-renderMembers();
-renderTargetOptions();
-setFocus(currentFocus);
-renderMemberInspector();
-</script>
+<script type="module" src="/boardroom/app.js"></script>
 </body>
 </html>
