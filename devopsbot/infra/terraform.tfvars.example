@@ -1,0 +1,11 @@
+tenancy_ocid     = "ocid1.tenancy.oc1..example"
+user_ocid        = "ocid1.user.oc1..example"
+fingerprint      = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+region           = "us-ashburn-1"
+compartment_ocid = "ocid1.compartment.oc1..example"
+ssh_public_key   = "ssh-ed25519 AAAA... your-key-comment"
+
+# Optional overrides (defaults shown)
+# instance_ocpus          = 2
+# instance_memory_in_gbs  = 12
+# boot_volume_size_in_gbs = 50

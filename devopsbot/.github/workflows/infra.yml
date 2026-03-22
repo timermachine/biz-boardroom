@@ -1,0 +1,82 @@
+name: Infra
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Terraform action"
+        required: true
+        type: choice
+        options:
+          - apply
+          - destroy
+
+jobs:
+  tofu:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    env:
+      TF_VAR_tenancy_ocid:      ${{ secrets.OCI_TENANCY_OCID }}
+      TF_VAR_user_ocid:         ${{ secrets.OCI_USER_OCID }}
+      TF_VAR_fingerprint:       ${{ secrets.OCI_FINGERPRINT }}
+      TF_VAR_region:            ${{ secrets.OCI_REGION }}
+      TF_VAR_compartment_ocid:  ${{ secrets.OCI_COMPARTMENT_OCID }}
+      TF_VAR_ssh_public_key:    ${{ secrets.TF_VAR_SSH_PUBLIC_KEY }}
+      TF_VAR_private_key_path:  /tmp/oci_key.pem
+      # S3 backend credentials — OCI Customer Secret Keys (not the API key pair)
+      # Create at: OCI Console → Identity → Users → your user → Customer Secret Keys
+      AWS_ACCESS_KEY_ID:        ${{ secrets.OCI_STORAGE_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY:    ${{ secrets.OCI_STORAGE_SECRET_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write OCI private key
+        run: |
+          printf '%s' "${{ secrets.OCI_PRIVATE_KEY }}" > /tmp/oci_key.pem
+          chmod 600 /tmp/oci_key.pem
+
+      - name: Set up OpenTofu
+        uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f
+        with:
+          tofu_version: "1.8.x"
+
+      - name: tofu init
+        working-directory: infra
+        run: |
+          tofu init \
+            -backend-config="region=${{ secrets.OCI_REGION }}" \
+            -backend-config="endpoint=https://${{ secrets.OCI_STORAGE_NAMESPACE }}.compat.objectstorage.${{ secrets.OCI_REGION }}.oraclecloud.com"
+
+      - name: tofu apply
+        if: ${{ inputs.action == 'apply' }}
+        working-directory: infra
+        run: tofu apply -auto-approve
+
+      - name: tofu destroy
+        if: ${{ inputs.action == 'destroy' }}
+        working-directory: infra
+        run: tofu destroy -auto-approve
+
+      - name: Print outputs (apply only)
+        if: ${{ inputs.action == 'apply' }}
+        working-directory: infra
+        run: |
+          IP=$(tofu output -raw instance_public_ip)
+          NSG=$(tofu output -raw nsg_ocid)
+          {
+            echo "## Sandbox provisioned"
+            echo ""
+            echo "| Secret | Value |"
+            echo "|--------|-------|"
+            echo "| \`SANDBOX_HOST\` | \`$IP\` |"
+            echo "| \`OCI_NSG_OCID\` | \`$NSG\` |"
+            echo ""
+            echo "Update both repository secrets with these values before running deploy-sandbox.yml."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove OCI private key
+        if: always()
+        run: rm -f /tmp/oci_key.pem

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://calm.finos.org/draft/2024-04/meta/calm.json",
+  "title": "myapp — Containerised Node/Postgres Stack",
+  "description": "Instantiation of the containerised web app pattern for myapp.",
+
+  "nodes": [
+    {
+      "unique-id": "developer",
+      "node-type": "actor",
+      "name": "Developer",
+      "description": "Team member working on the application"
+    },
+    {
+      "unique-id": "ci-pipeline",
+      "node-type": "system",
+      "name": "GitHub Actions",
+      "description": "CI: lint → test → build image → push to GHCR. CD: SSH deploy on merge to main.",
+      "interfaces": [
+        {
+          "unique-id": "ci-trigger",
+          "type": "url-interface",
+          "url": "https://github.com/timermachine/cicd1/actions"
+        }
+      ]
+    },
+    {
+      "unique-id": "container-registry",
+      "node-type": "system",
+      "name": "GitHub Container Registry (GHCR)",
+      "description": "Stores versioned myapp images at ghcr.io/timermachine/cicd1",
+      "interfaces": [
+        {
+          "unique-id": "ghcr-url",
+          "type": "url-interface",
+          "url": "https://ghcr.io/timermachine/cicd1"
+        }
+      ]
+    },
+    {
+      "unique-id": "reverse-proxy",
+      "node-type": "service",
+      "name": "nginx",
+      "description": "Alpine nginx reverse proxy — production only, defined in nginx/nginx.conf",
+      "interfaces": [
+        {
+          "unique-id": "nginx-public",
+          "type": "host-port-interface",
+          "host": "localhost",
+          "port": 80
+        }
+      ]
+    },
+    {
+      "unique-id": "app",
+      "node-type": "service",
+      "name": "myapp (Node.js/Express)",
+      "description": "Express API — routes: GET /, GET /health, GET /db-health. Runs on Node 24 Alpine.",
+      "interfaces": [
+        {
+          "unique-id": "app-http",
+          "type": "host-port-interface",
+          "host": "app",
+          "port": 3000
+        }
+      ]
+    },
+    {
+      "unique-id": "database",
+      "node-type": "database",
+      "name": "PostgreSQL 16",
+      "description": "postgres:16-alpine. Connection via DATABASE_URL env var.",
+      "interfaces": [
+        {
+          "unique-id": "db-port",
+          "type": "host-port-interface",
+          "host": "db",
+          "port": 5432
+        }
+      ]
+    }
+  ],
+
+  "relationships": [
+    {
+      "unique-id": "developer-to-proxy",
+      "description": "Developer accesses the app via browser or HTTP client",
+      "relationship-type": {
+        "interacts": {
+          "actor": "developer",
+          "nodes": ["reverse-proxy"]
+        }
+      },
+      "protocol": "HTTP"
+    },
+    {
+      "unique-id": "proxy-to-app",
+      "description": "nginx proxies all requests to myapp on port 3000",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "reverse-proxy" },
+          "destination": { "node": "app", "interfaces": ["app-http"] }
+        }
+      },
+      "protocol": "HTTP"
+    },
+    {
+      "unique-id": "app-to-db",
+      "description": "Express app connects to Postgres via pg connection pool",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "app" },
+          "destination": { "node": "database", "interfaces": ["db-port"] }
+        }
+      },
+      "protocol": "PostgreSQL"
+    },
+    {
+      "unique-id": "ci-to-registry",
+      "description": "ci.yml builds and pushes image to GHCR on every PR merge",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "ci-pipeline" },
+          "destination": { "node": "container-registry" }
+        }
+      },
+      "protocol": "HTTPS"
+    },
+    {
+      "unique-id": "registry-to-app",
+      "description": "deploy.yml pulls the tagged image from GHCR to the server",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "container-registry" },
+          "destination": { "node": "app" }
+        }
+      },
+      "protocol": "HTTPS"
+    }
+  ]
+}

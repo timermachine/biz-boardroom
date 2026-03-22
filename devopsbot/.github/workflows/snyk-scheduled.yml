@@ -1,0 +1,68 @@
+name: Snyk — scheduled security scan
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # every Monday at 03:00 UTC
+  workflow_dispatch: {}    # allow manual trigger
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  # SAST — static analysis of application source code.
+  # Never blocks. Results go to GitHub Security tab.
+  snyk-code:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Snyk — SAST (code scan)
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --sarif-file-output=snyk-code.sarif
+          command: code test
+
+      - name: Upload SAST results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: snyk-code.sarif
+          category: snyk-code
+
+  # IaC scan — docker-compose files, nginx config.
+  # Never blocks. Results go to GitHub Security tab.
+  snyk-iac:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Snyk — IaC scan
+        uses: snyk/actions/iac@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --sarif-file-output=snyk-iac.sarif
+          file: >-
+            docker-compose.yml
+            docker-compose.dev.yml
+            docker-compose.prod.yml
+            nginx/nginx.conf
+
+      - name: Upload IaC results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: snyk-iac.sarif
+          category: snyk-iac

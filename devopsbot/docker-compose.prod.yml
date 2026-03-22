@@ -1,0 +1,19 @@
+services:
+  app:
+    restart: unless-stopped
+    # pulls image from GHCR — no build here
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  db:
+    restart: unless-stopped
+    # DB port NOT exposed in prod

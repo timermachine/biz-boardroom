@@ -1,0 +1,13 @@
+.env
+node_modules
+*.log
+.DS_Store
+.worktrees
+playwright-report/
+test-results/
+biz/playwright-report/
+biz/test-results/
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
