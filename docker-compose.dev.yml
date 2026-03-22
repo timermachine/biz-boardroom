@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: ./app
+      target: deps          # stop at deps stage — faster in dev
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./app:/app          # live reload
+      - /app/node_modules   # preserve container node_modules
+
+  db:
+    ports:
+      - "5432:5432"         # expose locally for psql / DB tools
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.44.0-jammy
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
+    depends_on:
+      - app
+    command: npx playwright test
+    profiles:
+      - e2e

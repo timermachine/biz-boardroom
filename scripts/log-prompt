@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Manually log a prompt from any AI tool.
+# Usage: scripts/log-prompt --agent <name> --model <model> "your prompt"
+#
+# Examples:
+#   scripts/log-prompt --agent chatgpt --model gpt-4o "explain this Dockerfile"
+#   scripts/log-prompt --agent gemini --model gemini-1.5-pro "review this function"
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+LOG="$ROOT/docs/ai-log.jsonl"
+AGENT="manual"
+MODEL="unknown"
+PROMPT=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --agent) AGENT="$2"; shift 2 ;;
+    --model) MODEL="$2"; shift 2 ;;
+    *) PROMPT="$1"; shift ;;
+  esac
+done
+
+if [ -z "$PROMPT" ]; then
+  echo "Usage: scripts/log-prompt --agent <name> --model <model> \"prompt\"" >&2
+  exit 1
+fi
+
+python3 -c "
+import json, sys
+from datetime import datetime, timezone
+print(json.dumps({
+    'ts': datetime.now(timezone.utc).isoformat(),
+    'agent': sys.argv[1],
+    'model': sys.argv[2],
+    'session': '',
+    'prompt': sys.argv[3],
+}, ensure_ascii=False))
+" "$AGENT" "$MODEL" "$PROMPT" >> "$LOG"
+
+echo "Logged to $LOG"

@@ -1,0 +1,114 @@
+name: Sandbox Access
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "open or close"
+        required: true
+        type: choice
+        options:
+          - open
+          - close
+      ip:
+        description: "IP CIDR to allow (e.g. 203.0.113.5/32)"
+        required: true
+        type: string
+      ports:
+        description: "Comma-separated ports (default: 80)"
+        required: false
+        default: "80"
+        type: string
+
+jobs:
+  manage-access:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install OCI CLI
+        run: |
+          # Pin the version — update this when OCI CLI releases a new stable version
+          pip install oci-cli==3.76.0
+
+      - name: Configure OCI CLI
+        run: |
+          mkdir -p ~/.oci
+          printf '%s' "${{ secrets.OCI_PRIVATE_KEY }}" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+          printf '%s\n' '[DEFAULT]' \
+            'user=OCI_USER_PLACEHOLDER' \
+            'fingerprint=OCI_FINGERPRINT_PLACEHOLDER' \
+            'tenancy=OCI_TENANCY_PLACEHOLDER' \
+            'region=OCI_REGION_PLACEHOLDER' \
+            'key_file=~/.oci/oci_api_key.pem' \
+            > ~/.oci/config
+          # Replace placeholders with secret values (avoids heredoc indentation issues)
+          sed -i "s|OCI_USER_PLACEHOLDER|${{ secrets.OCI_USER_OCID }}|" ~/.oci/config
+          sed -i "s|OCI_FINGERPRINT_PLACEHOLDER|${{ secrets.OCI_FINGERPRINT }}|" ~/.oci/config
+          sed -i "s|OCI_TENANCY_PLACEHOLDER|${{ secrets.OCI_TENANCY_OCID }}|" ~/.oci/config
+          sed -i "s|OCI_REGION_PLACEHOLDER|${{ secrets.OCI_REGION }}|" ~/.oci/config
+
+      - name: Open NSG rules
+        if: ${{ inputs.action == 'open' }}
+        env:
+          NSG_ID: ${{ secrets.OCI_NSG_OCID }}
+          IP: ${{ inputs.ip }}
+          PORTS: ${{ inputs.ports }}
+        run: |
+          for PORT in $(echo "$PORTS" | tr ',' ' '); do
+            PORT=$(echo "$PORT" | tr -d ' ')
+            echo "Opening port $PORT for $IP"
+            oci network nsg rules add \
+              --nsg-id "$NSG_ID" \
+              --security-rules "[{
+                \"direction\": \"INGRESS\",
+                \"protocol\": \"6\",
+                \"source\": \"$IP\",
+                \"source-type\": \"CIDR_BLOCK\",
+                \"is-stateless\": false,
+                \"description\": \"pentest-${PORT}\",
+                \"tcp-options\": {
+                  \"destination-port-range\": {
+                    \"min\": $PORT,
+                    \"max\": $PORT
+                  }
+                }
+              }]"
+          done
+
+      - name: Close NSG rules
+        if: ${{ inputs.action == 'close' }}
+        env:
+          NSG_ID: ${{ secrets.OCI_NSG_OCID }}
+          IP: ${{ inputs.ip }}
+          PORTS: ${{ inputs.ports }}
+        run: |
+          for PORT in $(echo "$PORTS" | tr ',' ' '); do
+            PORT=$(echo "$PORT" | tr -d ' ')
+            echo "Closing port $PORT for $IP"
+
+            RULES_JSON=$(oci network nsg rules list --nsg-id "$NSG_ID" --all)
+            RULE_IDS=$(echo "$RULES_JSON" | jq -r \
+              --arg ip "$IP" \
+              --argjson port "$PORT" \
+              '[.data[] | select(
+                  .source == $ip and
+                  (."tcp-options"."destination-port-range".min == $port or
+                   ."tcp-options"."destination-port-range".max == $port)
+                ) | .id]')
+
+            COUNT=$(echo "$RULE_IDS" | jq 'length')
+            if [ "$COUNT" -gt 0 ]; then
+              echo "Removing $COUNT rule(s) for port $PORT from $IP"
+              oci network nsg rules remove \
+                --nsg-id "$NSG_ID" \
+                --security-rule-ids "$RULE_IDS" \
+                --force
+            else
+              echo "No matching rules found for port $PORT / $IP — nothing to remove"
+            fi
+          done
+
+      - name: Clean up OCI credentials
+        if: always()
+        run: rm -f ~/.oci/oci_api_key.pem

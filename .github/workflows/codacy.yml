@@ -1,0 +1,67 @@
+name: Codacy
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - ".codacy/**"
+      - ".github/workflows/codacy.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - ".codacy/**"
+      - ".github/workflows/codacy.yml"
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install app dependencies
+        run: npm ci
+        working-directory: app
+
+      - name: Run app coverage
+        run: npm run coverage
+        working-directory: app
+
+      - name: Install Codacy runtimes/tools
+        run: ./.codacy/cli.sh install
+
+      - name: Run Codacy analysis (ESLint -> SARIF)
+        run: ./.codacy/cli.sh analyze --tool eslint --format sarif -o codacy-results.sarif
+
+      - name: Upload Codacy SARIF
+        if: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          CODACY_COMMIT_UUID: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: ./.codacy/cli.sh upload -s codacy-results.sarif -t "$CODACY_PROJECT_TOKEN" -c "$CODACY_COMMIT_UUID"
+
+      - name: Upload Codacy coverage (LCOV)
+        if: ${{ secrets.CODACY_PROJECT_TOKEN != '' }}
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          CODACY_COMMIT_UUID: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
+            --language JavaScript \
+            --partial \
+            -r app/coverage/lcov.info \
+            --project-token "$CODACY_PROJECT_TOKEN" \
+            --commit-uuid "$CODACY_COMMIT_UUID"
+
+      - name: Warn when Codacy token is missing
+        if: ${{ secrets.CODACY_PROJECT_TOKEN == '' }}
+        run: echo "CODACY_PROJECT_TOKEN is not set. Skipping Codacy upload steps."

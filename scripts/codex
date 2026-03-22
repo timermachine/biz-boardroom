@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Wrapper for the OpenAI Codex CLI that logs prompts to docs/ai-log.jsonl before running.
+# Usage: scripts/codex "your prompt here" [codex flags...]
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+LOG="$ROOT/docs/ai-log.jsonl"
+PROMPT="${1:-}"
+
+if [ -z "$PROMPT" ]; then
+  exec codex "$@"
+fi
+
+MODEL="${OPENAI_MODEL:-codex}"
+
+python3 -c "
+import json, sys
+from datetime import datetime, timezone
+print(json.dumps({
+    'ts': datetime.now(timezone.utc).isoformat(),
+    'agent': 'codex',
+    'model': sys.argv[1],
+    'session': '',
+    'prompt': sys.argv[2],
+}, ensure_ascii=False))
+" "$MODEL" "$PROMPT" >> "$LOG"
+
+exec codex "$@"

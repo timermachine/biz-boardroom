@@ -1,0 +1,123 @@
+{
+  "$schema": "https://calm.finos.org/draft/2024-04/meta/pattern.json",
+  "title": "Containerised Web App with Database",
+  "description": "Pattern for a containerised Node.js service behind a reverse proxy, backed by PostgreSQL, with a CI/CD pipeline.",
+
+  "nodes": [
+    {
+      "unique-id": "developer",
+      "node-type": "actor",
+      "name": "Developer",
+      "description": "Human developer interacting with the system"
+    },
+    {
+      "unique-id": "ci-pipeline",
+      "node-type": "system",
+      "name": "CI/CD Pipeline",
+      "description": "Builds, tests, and deploys the application"
+    },
+    {
+      "unique-id": "container-registry",
+      "node-type": "system",
+      "name": "Container Registry",
+      "description": "Stores versioned container images"
+    },
+    {
+      "unique-id": "reverse-proxy",
+      "node-type": "service",
+      "name": "Reverse Proxy",
+      "description": "Terminates HTTP and forwards requests to the app service",
+      "interfaces": [
+        {
+          "unique-id": "reverse-proxy-public",
+          "type": "host-port-interface",
+          "port": 80
+        }
+      ]
+    },
+    {
+      "unique-id": "app",
+      "node-type": "service",
+      "name": "Application Service",
+      "description": "Business logic and API endpoints",
+      "interfaces": [
+        {
+          "unique-id": "app-http",
+          "type": "host-port-interface",
+          "port": 3000
+        }
+      ]
+    },
+    {
+      "unique-id": "database",
+      "node-type": "database",
+      "name": "Database",
+      "description": "Persistent relational data store",
+      "interfaces": [
+        {
+          "unique-id": "db-port",
+          "type": "host-port-interface",
+          "port": 5432
+        }
+      ]
+    }
+  ],
+
+  "relationships": [
+    {
+      "unique-id": "developer-to-proxy",
+      "description": "Developer accesses the app via browser or HTTP client",
+      "relationship-type": {
+        "interacts": {
+          "actor": "developer",
+          "nodes": ["reverse-proxy"]
+        }
+      },
+      "protocol": "HTTP"
+    },
+    {
+      "unique-id": "proxy-to-app",
+      "description": "Reverse proxy forwards requests to the app",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "reverse-proxy" },
+          "destination": { "node": "app", "interfaces": ["app-http"] }
+        }
+      },
+      "protocol": "HTTP"
+    },
+    {
+      "unique-id": "app-to-db",
+      "description": "App reads and writes data via connection pool",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "app" },
+          "destination": { "node": "database", "interfaces": ["db-port"] }
+        }
+      },
+      "protocol": "PostgreSQL"
+    },
+    {
+      "unique-id": "ci-to-registry",
+      "description": "CI pipeline pushes built images to the registry",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "ci-pipeline" },
+          "destination": { "node": "container-registry" }
+        }
+      },
+      "protocol": "HTTPS"
+    },
+    {
+      "unique-id": "registry-to-app",
+      "description": "App service image is pulled from the registry at deploy time",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "container-registry" },
+          "destination": { "node": "app" }
+        }
+      },
+      "protocol": "HTTPS"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "name": "CI-CD Dev Container",
+  "dockerFile": "Dockerfile",
+  "context": "..",
+  "remoteUser": "node",
+  "workspaceFolder": "/workspaces/cicd1",
+  // Docker CLI + Compose available inside the container (docker-outside-of-docker)
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  // Ensure host dirs exist before Docker bind-mounts them
+  "initializeCommand": "mkdir -p ${localEnv:HOME}/.codacy ${localEnv:HOME}/.codex ${localEnv:HOME}/.claude",
+  // Install all dependencies and Playwright browsers on first open
+  "postCreateCommand": "npm install && cd app && npm install && cd /workspaces/cicd1 && npx playwright install --with-deps chromium && npm install -g snyk",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "ms-playwright.playwright",
+        "ms-azuretools.vscode-docker",
+        "cweijan.vscode-postgresql-client2",
+        "FINOS.calm-vscode-plugin",
+        "snyk-security.snyk-vulnerability-scanner",
+        "GitHub.vscode-github-actions",
+        "anthropic.claude-code",
+        "openai.codex"
+      ]
+    }
+  },
+  // Persist Codex auth/settings across dev container restarts and across repos.
+  "mounts": [
+    "source=${localEnv:HOME}/.codacy,target=/home/node/.codacy,type=bind",
+    "source=${localEnv:HOME}/.codex,target=/home/node/.codex,type=bind",
+    "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind",
+    "source=${localEnv:HOME}/.claude.json,target=/home/node/.claude.json,type=bind"
+  ],
+  "forwardPorts": [
+    3000,
+    5432
+  ],
+  // Codespaces: label ports and suppress the 5432 popup
+  "portsAttributes": {
+    "3000": {
+      "label": "App",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    }
+  },
+  // Codespaces: warn if Docker socket isn't ready yet
+  "postStartCommand": "docker --version 2>/dev/null || echo 'Warning: Docker not available — docker-outside-of-docker feature may still be initialising'"
+}
