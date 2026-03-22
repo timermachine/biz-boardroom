@@ -33,6 +33,7 @@ const state = {
   protectedIds: new Set(),
   expandedMembers: new Set(),
   breakoutRooms: [],
+  selectedTargetMembers: [],
   hoverCardMemberId: null,
   hoverCardTimer: null,
   boardHealthTooltipKey: null,
@@ -152,13 +153,47 @@ function renderMembers() {
 }
 
 function renderTargetOptions() {
-  const previous = qs('targetSelect').value || 'board';
-  qs('targetSelect').innerHTML = ['<option value="board">Full Board</option>']
-    .concat(state.memberOrder.map((id) => {
-      const member = state.members[id];
-      return `<option value="${id}">${escapeHtml(member.name)} (${escapeHtml(member.title)})</option>`;
-    })).join('');
-  qs('targetSelect').value = state.memberOrder.includes(previous) || previous === 'board' ? previous : 'board';
+  renderTargetMembers();
+}
+
+function renderTargetMembers() {
+  qs('targetMembers').innerHTML = state.memberOrder.map((id) => {
+    const member = state.members[id];
+    return `<label class="breakout-member"><input type="checkbox" value="${id}" ${state.selectedTargetMembers.includes(id) ? 'checked' : ''}> <span>${escapeHtml(member.name)} - ${escapeHtml(member.title)}</span></label>`;
+  }).join('');
+  syncTargetMembersVisibility();
+  updateTargetSummary();
+}
+
+function getSelectedTargetMembers() {
+  return [...state.selectedTargetMembers];
+}
+
+function setSelectedTargetMembers(memberIds) {
+  state.selectedTargetMembers = state.memberOrder.filter((id) => memberIds.includes(id));
+  const selected = new Set(state.selectedTargetMembers);
+  qs('targetMembers').querySelectorAll('input[type="checkbox"]').forEach((input) => {
+    input.checked = selected.has(input.value);
+  });
+  updateTargetSummary();
+}
+
+function syncTargetMembersVisibility() {
+  qs('targetMembers').style.display = 'grid';
+}
+
+function updateTargetSummary() {
+  const selected = getSelectedTargetMembers();
+  qs('selectAllAttendeesBtn').textContent = selected.length === state.memberOrder.length ? 'Clear All' : 'Select All';
+  if (!selected.length) {
+    qs('targetSummary').textContent = 'No direct addressees selected. Submit will route to the most relevant board voices.';
+    return;
+  }
+  if (selected.length === state.memberOrder.length) {
+    qs('targetSummary').textContent = 'Selected: Full Board';
+    return;
+  }
+  qs('targetSummary').textContent = `Selected: ${selected.map((id) => state.members[id]?.name || id).join(', ')}`;
 }
 
 function renderBreakoutMemberChoices() {
@@ -440,6 +475,11 @@ function setFocus(memberId) {
   renderInspector();
 }
 
+function focusMemberAsCustomTarget(memberId) {
+  syncTargetMembersVisibility();
+  setSelectedTargetMembers([memberId]);
+}
+
 function toggleMember(memberId) {
   if (state.expandedMembers.has(memberId)) {
     state.expandedMembers.delete(memberId);
@@ -523,8 +563,7 @@ async function sendMessage() {
   input.style.height = '44px';
   recordTranscript({ kind: 'user', speaker: 'You', title: 'Floor', text, tags: [] });
 
-  const target = qs('targetSelect').value;
-  const respondents = target === 'board' ? pickBoardRespondents(text) : [target];
+  const respondents = getSelectedTargetMembers().length ? getSelectedTargetMembers() : pickBoardRespondents(text);
 
   for (const memberId of respondents) {
     const member = state.members[memberId];
@@ -758,6 +797,7 @@ function bindEvents() {
     if (event.target.closest('[data-member-toggle]')) {
       toggleMember(memberId);
     }
+    focusMemberAsCustomTarget(memberId);
     setFocus(memberId);
   });
   qs('memberList').addEventListener('mouseover', (event) => {
@@ -783,8 +823,15 @@ function bindEvents() {
     if (memberEl.contains(event.relatedTarget)) return;
     hideHoverCard(memberEl.dataset.member);
   });
-  qs('targetSelect').addEventListener('change', (event) => {
-    if (event.target.value !== 'board') setFocus(event.target.value);
+  qs('targetMembers').addEventListener('change', () => {
+    state.selectedTargetMembers = [...qs('targetMembers').querySelectorAll('input:checked')].map((input) => input.value);
+    updateTargetSummary();
+    const selected = getSelectedTargetMembers();
+    if (selected.length === 1) setFocus(selected[0]);
+  });
+  qs('selectAllAttendeesBtn').addEventListener('click', () => {
+    const allSelected = state.selectedTargetMembers.length === state.memberOrder.length;
+    setSelectedTargetMembers(allSelected ? [] : state.memberOrder);
   });
   qs('sendBtn').addEventListener('click', sendMessage);
   qs('saveBtn').addEventListener('click', saveMinutes);
